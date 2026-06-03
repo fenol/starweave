@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../data/tutorial_jump_data.dart';
 import '../data/tutorial_spectrum_data.dart';
 import '../game/game_state.dart';
 import '../models/star_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/star_grid_widget.dart';
-import 'tutorial_jump_screen.dart';
 
-class TutorialScreen extends StatefulWidget {
-  const TutorialScreen({super.key});
+class TutorialJumpScreen extends StatefulWidget {
+  const TutorialJumpScreen({super.key});
 
   @override
-  State<TutorialScreen> createState() => _TutorialScreenState();
+  State<TutorialJumpScreen> createState() => _TutorialJumpScreenState();
 }
 
-class _TutorialScreenState extends State<TutorialScreen>
+class _TutorialJumpScreenState extends State<TutorialJumpScreen>
     with SingleTickerProviderStateMixin {
 
   late GameState _gameState;
@@ -26,7 +26,7 @@ class _TutorialScreenState extends State<TutorialScreen>
   @override
   void initState() {
     super.initState();
-    _gameState = GameState(level: TutorialSpectrumData.level);
+    _gameState = GameState(level: TutorialJumpData.level);
     _gameState.addListener(_onGameStateChanged);
 
     _bannerController = AnimationController(
@@ -51,24 +51,19 @@ class _TutorialScreenState extends State<TutorialScreen>
   void _onGameStateChanged() {
     final newState    = _gameState.state;
     final newHintStep = _currentHint.afterStep;
-    // Анімуємо лише коли змінився стан або з'явилась нова підказка
     if (newState != _prevState || newHintStep != _prevHintStep) {
-      _bannerController
-        ..reset()
-        ..forward();
+      _bannerController..reset()..forward();
       _prevState    = newState;
       _prevHintStep = newHintStep;
     }
     setState(() {});
   }
 
-  // Поточна підказка туторіалу
   TutorialHint get _currentHint {
     final step = _gameState.stepCount;
-    // Знаходимо останню підказку що підходить до поточного кроку
-    return TutorialSpectrumData.hints.lastWhere(
+    return TutorialJumpData.hints.lastWhere(
       (h) => h.afterStep <= step,
-      orElse: () => TutorialSpectrumData.hints.first,
+      orElse: () => TutorialJumpData.hints.first,
     );
   }
 
@@ -93,7 +88,6 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  // Шапка
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -102,38 +96,35 @@ class _TutorialScreenState extends State<TutorialScreen>
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
             child: const Icon(Icons.chevron_left,
-              color: AppTheme.textSecondary, size: 24),
+                color: AppTheme.textSecondary, size: 24),
           ),
           const Spacer(),
           Column(
             children: [
               Text('ТУТОРІАЛ', style: AppTheme.labelStyle.copyWith(
-                fontSize: 10, color: AppTheme.textSecondary)),
-              Text('СПЕКТРАЛЬНИЙ РЯД', style: AppTheme.labelStyle.copyWith(
-                fontSize: 12, color: AppTheme.textPrimary)),
+                  fontSize: 10, color: AppTheme.textSecondary)),
+              Text('СТРИБКИ', style: AppTheme.labelStyle.copyWith(
+                  fontSize: 12, color: AppTheme.textPrimary)),
             ],
           ),
           const Spacer(),
-          // Кнопка скидання
           GestureDetector(
             onTap: _gameState.resetPath,
             child: const Icon(Icons.refresh,
-              color: AppTheme.textSecondary, size: 20),
+                color: AppTheme.textSecondary, size: 20),
           ),
         ],
       ),
     );
   }
 
-  // Банер з підказкою або статусом
   Widget _buildBanner() {
-
     final (borderColor, labelColor, labelText, bodyText) = switch (_gameState.state) {
       LevelState.success => (
         AppTheme.accent,
         AppTheme.accent,
         'ЧУДОВО!',
-        'Ти зрозумів(-ла) правило спектру.\nШлях знайдено від А до В.',
+        'Ти освоїв(-ла) стрибки!\nВперше вони з\'являються у розділі Персей · α Мірфак.',
       ),
       LevelState.wrongStart => (
         const Color(0xFF8B3030),
@@ -144,8 +135,8 @@ class _TutorialScreenState extends State<TutorialScreen>
       LevelState.spectrumError => (
         const Color(0xFF8B3030),
         const Color(0xFFCC5555),
-        'СПЕКТР ЗЛАМАНО',
-        'Лише сусідні класи ±1.\nСпробуйте ще раз.',
+        'НЕМОЖЛИВИЙ КУП',
+        'Зірки не сусідні і між ними немає порожнього місця,\nабо спектр зламано.',
       ),
       LevelState.pathTooLong => (
         const Color(0xFF8B3030),
@@ -182,12 +173,10 @@ class _TutorialScreenState extends State<TutorialScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(labelText,
-                    style: AppTheme.labelStyle.copyWith(
+                  Text(labelText, style: AppTheme.labelStyle.copyWith(
                       fontSize: 11, color: labelColor)),
                   const SizedBox(height: 6),
-                  Text(bodyText,
-                    style: AppTheme.bodyStyle.copyWith(
+                  Text(bodyText, style: AppTheme.bodyStyle.copyWith(
                       fontSize: 13, height: 1.5)),
                 ],
               ),
@@ -198,7 +187,6 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  // Сітка
   Widget _buildGrid() {
     final highlight = _gameState.state == LevelState.playing
         ? _currentHint.highlightCells
@@ -208,7 +196,7 @@ class _TutorialScreenState extends State<TutorialScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Center(
         child: AspectRatio(
-          aspectRatio: _gameState.level.cols / _gameState.level.rows,
+          aspectRatio: 1.0, // 5×5 grid
           child: StarGridWidget(
             level: _gameState.level,
             gameState: _gameState,
@@ -220,7 +208,6 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  // Нижня панель
   Widget _buildBottom() {
     if (_gameState.state == LevelState.success) {
       return _buildSuccessButtons();
@@ -231,7 +218,6 @@ class _TutorialScreenState extends State<TutorialScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Легенда спектрів
           ...StarSpectrum.values.map((s) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Row(
@@ -244,11 +230,9 @@ class _TutorialScreenState extends State<TutorialScreen>
                   ),
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  '${s.index + 1}m',
-                  style: AppTheme.labelStyle.copyWith(
-                    fontSize: 10, color: AppTheme.textSecondary),
-                ),
+                Text('${s.index + 1}m',
+                    style: AppTheme.labelStyle.copyWith(
+                        fontSize: 10, color: AppTheme.textSecondary)),
               ],
             ),
           )),
@@ -257,44 +241,37 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  // Кнопки після успіху
   Widget _buildSuccessButtons() {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Прогрес туторіалу
           Text(
-            'ТУТОРІАЛ ПРОЙДЕНО · СПЕКТРАЛЬНИЙ РЯД',
+            'ТУТОРІАЛ ПРОЙДЕНО · СТРИБКИ',
             style: AppTheme.labelStyle.copyWith(
-              fontSize: 10, color: AppTheme.textSecondary),
+                fontSize: 10, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 16),
-          // Кнопка — Далі: стрибки
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const TutorialJumpScreen()),
-              ),
+              onPressed: () => Navigator.of(context).pop(),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppTheme.accent),
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text('ДАЛІ: СТРИБКИ →',
-                style: AppTheme.buttonStyle.copyWith(
-                  color: AppTheme.accent, letterSpacing: 2)),
+              child: Text('ПОВЕРНУТИСЬ →',
+                  style: AppTheme.buttonStyle.copyWith(
+                      color: AppTheme.accent, letterSpacing: 2)),
             ),
           ),
           const SizedBox(height: 10),
-          // Кнопка — Меню
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text('МЕНЮ',
-              style: AppTheme.buttonStyle.copyWith(
-                color: AppTheme.textSecondary, letterSpacing: 2)),
+                style: AppTheme.buttonStyle.copyWith(
+                    color: AppTheme.textSecondary, letterSpacing: 2)),
           ),
         ],
       ),
