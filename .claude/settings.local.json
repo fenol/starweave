@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\projects\\\\starweave\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(dart analyze *)"
+    ]
+  }
+}

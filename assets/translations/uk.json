@@ -1,0 +1,94 @@
+{
+  "app_name": "Starweave",
+  "tagline": "Ткемо небо",
+
+  "menu": {
+    "explore": "Досліджувати",
+    "collection": "Колекція",
+    "map": "Карта"
+  },
+
+  "sky_selection": {
+    "title": "Оберіть небо",
+    "northern": "Північна півкуля",
+    "bonus": "Бонус",
+    "winter": "Зима",
+    "spring": "Весна",
+    "summer": "Літо",
+    "autumn": "Осінь",
+    "southern": "Південне небо",
+    "southern_sub": "33 нових сузір'я"
+  },
+
+  "preview": {
+    "label": "Попередній перегляд",
+    "in_focus": "У фокусі",
+    "stars_visible": "Видно зірок",
+    "constellations": "У полі зору",
+    "start": "Почати",
+    "hint_pinch": "Розведіть пальцями, щоб наблизитися",
+    "hint_rotate": "Тримайте, щоб обертати небо"
+  },
+
+  "game": {
+    "opened": "Відкрито",
+    "hint": "Підказка",
+    "map": "Карта"
+  },
+
+  "hint_panel": {
+    "title": "Підказка",
+    "direction": "Напрямок",
+    "stars": "Зірок",
+    "found": "Знайдено",
+    "premium": "Преміум підказки",
+    "show_silhouette": "Показати силует",
+    "show_sector": "Показати сектор",
+    "close": "Закрити"
+  },
+
+  "constellation_found": {
+    "label": "Знайдено сузір'я",
+    "visible": "Видно",
+    "brightness": "Яскравість",
+    "next": "Далі →"
+  },
+
+  "legend": {
+    "label": "Легенда сузір'я",
+    "section": "Розділ",
+    "skip": "Пропустити",
+    "next": "Далі →",
+    "to_collection": "До колекції"
+  },
+
+  "sky_map": {
+    "title": "Мапа неба",
+    "hint_zoom": "Розведіть або зведіть пальцями екран для зуму",
+    "touch": "Торкніться",
+    "north": "Пн",
+    "south": "Пд",
+    "east": "Сх",
+    "west": "Зх"
+  },
+
+  "collection": {
+    "label": "Колекція",
+    "title": "Сузір'я",
+    "opened": "Відкрито"
+  },
+
+  "settings": {
+    "label": "Налаштування",
+    "title": "Тиша",
+    "music": "Музика",
+    "sound": "Звук",
+    "star_brightness": "Яскравість зірок",
+    "player_mode": "Режим гравця",
+    "mode_beginner": "Новачок · підказки завжди",
+    "mode_explorer": "Дослідник · підказки за зорі",
+    "mode_astronomer": "Астроном · без підказок",
+    "language": "Мова",
+    "units": "Одиниці"
+  }
+}
