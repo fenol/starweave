@@ -4,13 +4,16 @@ import '../theme/app_theme.dart';
 import '../models/constellation_model.dart';
 import '../models/level_model.dart';
 import 'level_screen.dart';
+import 'spectrum_intro_screen.dart';
+import 'tutorial_screen.dart';
+import 'tutorial_jump_screen.dart';
+import 'tutorial_binary_screen.dart';
 import '../widgets/story_popup.dart';
+import '../data/mechanics_state.dart';
 
 class ConstellationScreen extends StatefulWidget {
   final ConstellationChapter chapter;
 
-  /// Повертає дані рівня за індексом зірки (0–N).
-  /// Різні розділи передають свою функцію.
   final LevelData? Function(int index) levelLoader;
 
   const ConstellationScreen({
@@ -26,7 +29,6 @@ class ConstellationScreen extends StatefulWidget {
 class _ConstellationScreenState extends State<ConstellationScreen>
     with TickerProviderStateMixin {
 
-  // Показуємо легенду лише один раз за сесію (per chapter)
   static final Set<String> _shownStories = {};
 
   late final AnimationController _pulseCtrl;
@@ -85,20 +87,42 @@ class _ConstellationScreenState extends State<ConstellationScreen>
     final size = _mapSize;
     if (size == null) return;
     const pad = _ConstellationPainter.mapPadding;
+    final rotation = widget.chapter.rotationDegrees;
 
     for (int i = 0; i < widget.chapter.stars.length; i++) {
       final star = widget.chapter.stars[i];
-      if (star.isDecoration) continue; // декоративні зірки не інтерактивні
-      final pos = Offset(
-        pad + star.x * (size.width  - 2 * pad),
-        pad + star.y * (size.height - 2 * pad),
-      );
+      if (star.isDecoration) continue;
+      final pos = _rotatedPos(star, size, pad, rotation);
       if ((details.localPosition - pos).distance < 28) {
         _onStarTapped(i, star);
         return;
       }
     }
     setState(() => _tappedIndex = null);
+  }
+
+  // Обчислює екранну позицію з урахуванням повороту
+  static Offset _rotatedPos(
+    ConstellationStar star,
+    Size size,
+    double pad,
+    double degrees,
+  ) {
+    if (degrees == 0.0) {
+      return Offset(
+        pad + star.x * (size.width - 2 * pad),
+        pad + star.y * (size.height - 2 * pad),
+      );
+    }
+    final angle = degrees * math.pi / 180.0;
+    final dx = star.x - 0.5;
+    final dy = star.y - 0.5;
+    final rx = dx * math.cos(angle) - dy * math.sin(angle) + 0.5;
+    final ry = dx * math.sin(angle) + dy * math.cos(angle) + 0.5;
+    return Offset(
+      pad + rx * (size.width - 2 * pad),
+      pad + ry * (size.height - 2 * pad),
+    );
   }
 
   void _onStarTapped(int index, ConstellationStar star) {
@@ -119,7 +143,60 @@ class _ConstellationScreenState extends State<ConstellationScreen>
       ));
       return;
     }
+
+    // Попап механіки — для першого рівня коли визначена механіка
+    if (star.levelIndex == 0 &&
+        widget.chapter.firstLevelMechanic != null) {
+      _showMechanicPopup(star);
+      return;
+    }
+
     _openLevel(star);
+  }
+
+  // ── Механіка-попап ───────────────────────────────────────────────────────
+
+  Future<void> _showMechanicPopup(ConstellationStar star) async {
+    final mechanic = widget.chapter.firstLevelMechanic!;
+
+    final (dialogTitle, dialogDesc) = switch (mechanic) {
+      'jumps'  => ('СТРИБКИ', 'Якщо між двома зірками порожньо — можна перестрибнути через пустоту, дотримуючись правил спектру.'),
+      'binary' => ('БІНАРНА ЗІРКА', 'Особлива зірка з двома станами спектру. Торкнись її ще раз — і вона зміниться на інший клас.'),
+      _        => ('СПЕКТРАЛЬНИЙ ШЛЯХ', 'Зірки пов\'язані спектральним рядом. Кожен крок шляху — це перехід між сусідніми спектральними класами.'),
+    };
+
+    final startTutorial = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.72),
+      builder: (_) => _NewMechanicDialog(
+        title: dialogTitle,
+        description: dialogDesc,
+      ),
+    );
+
+    if (!mounted) return;
+
+    final firstLevel = widget.levelLoader(0);
+
+    if (startTutorial == true) {
+      final result = await Navigator.of(context).push<TutorialResult>(
+        MaterialPageRoute(builder: (_) => switch (mechanic) {
+          'jumps'  => TutorialJumpScreen(firstLevel: firstLevel),
+          'binary' => TutorialBinaryScreen(firstLevel: firstLevel),
+          _        => SpectrumIntroScreen(firstLevel: firstLevel),
+        }),
+      );
+      if (!mounted) return;
+      if (result == TutorialResult.goToLevel) {
+        _openLevel(star);
+        return;
+      }
+    } else {
+      // Закрили попап — відкриваємо рівень напряму
+      _openLevel(star);
+    }
+
+    setState(() => _tappedIndex = null);
   }
 
   Future<void> _openLevel(ConstellationStar star) async {
@@ -148,8 +225,12 @@ class _ConstellationScreenState extends State<ConstellationScreen>
     if (completed == true) {
       widget.chapter.unlockNext(star.levelIndex);
 
-      // storyOnCompletion=true (Perseus, Ursa Major): показуємо після
-      // останнього рівня, рівно один раз
+      // Розблоковуємо механіку при проходженні першого рівня розділу
+      if (star.levelIndex == 0 &&
+          widget.chapter.firstLevelMechanic != null) {
+        MechanicsState.unlock(widget.chapter.firstLevelMechanic!);
+      }
+
       final doneKey = '${widget.chapter.nameLatin}_done';
       if (widget.chapter.story != null &&
           widget.chapter.storyOnCompletion &&
@@ -188,15 +269,20 @@ class _ConstellationScreenState extends State<ConstellationScreen>
     final total = widget.chapter.totalLevels;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 8, 12, 0),
+      padding: const EdgeInsets.fromLTRB(4, 18, 16, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Кнопка назад
           IconButton(
             icon: const Icon(Icons.arrow_back_ios_new,
-                color: AppTheme.textSecondary, size: 18),
+                color: AppTheme.textSecondary, size: 20),
             onPressed: () => Navigator.of(context).pop(),
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(),
           ),
+          const SizedBox(width: 4),
+          // Заголовок — займає весь простір між кнопкою і прогресом
           Expanded(
             child: Center(
               child: FittedBox(
@@ -208,7 +294,7 @@ class _ConstellationScreenState extends State<ConstellationScreen>
                       widget.chapter.nameLatin.toUpperCase(),
                       style: AppTheme.labelStyle.copyWith(
                         fontSize: 10,
-                        letterSpacing: 5,
+                        letterSpacing: 4,
                         color: AppTheme.textSecondary,
                       ),
                     ),
@@ -216,8 +302,8 @@ class _ConstellationScreenState extends State<ConstellationScreen>
                     Text(
                       widget.chapter.name.toUpperCase(),
                       style: AppTheme.titleStyle.copyWith(
-                        fontSize: 20,
-                        letterSpacing: 4,
+                        fontSize: 18,
+                        letterSpacing: 3,
                       ),
                     ),
                   ],
@@ -225,13 +311,16 @@ class _ConstellationScreenState extends State<ConstellationScreen>
               ),
             ),
           ),
+          const SizedBox(width: 4),
+          // Прогрес — вирівняний по центру
           Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 '$done / $total',
                 style: AppTheme.labelStyle.copyWith(
-                  fontSize: 16,
+                  fontSize: 18,
                   color: done == total
                       ? AppTheme.accent
                       : AppTheme.textSecondary,
@@ -240,7 +329,7 @@ class _ConstellationScreenState extends State<ConstellationScreen>
               Text(
                 'РІВНІВ',
                 style: AppTheme.labelStyle.copyWith(
-                  fontSize: 8,
+                  fontSize: 9,
                   letterSpacing: 2,
                   color: AppTheme.textSecondary.withOpacity(0.5),
                 ),
@@ -282,7 +371,7 @@ class _ConstellationScreenState extends State<ConstellationScreen>
     final hasStory = widget.chapter.story != null;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(28, 8, 28, 20),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -290,23 +379,20 @@ class _ConstellationScreenState extends State<ConstellationScreen>
             color: AppTheme.constellationLine.withOpacity(0.15),
             height: 1,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // Цитата (скорочена до 2 рядків якщо є кнопка легенди)
+          // Цитата — шрифт підібрано щоб повністю поміститись без обрізання
           Text(
             widget.chapter.mythQuote,
             style: AppTheme.bodyStyle.copyWith(
               fontSize: 12,
               fontStyle: FontStyle.italic,
-              color: AppTheme.textSecondary.withOpacity(0.6),
-              height: 1.6,
+              color: AppTheme.textSecondary.withOpacity(0.85),
+              height: 1.45,
             ),
             textAlign: TextAlign.center,
-            maxLines: hasStory ? 2 : 3,
-            overflow: TextOverflow.ellipsis,
           ),
 
-          // Посилання «ЛЕГЕНДА» — для on-entry завжди; для on-completion лише після фінішу
           if (hasStory &&
               (!widget.chapter.storyOnCompletion ||
                widget.chapter.isFullyCompleted)) ...[
@@ -316,7 +402,7 @@ class _ConstellationScreenState extends State<ConstellationScreen>
               child: Text(
                 'ЛЕГЕНДА  →',
                 style: AppTheme.labelStyle.copyWith(
-                  fontSize: 10,
+                  fontSize: 12,
                   letterSpacing: 3,
                   color: AppTheme.accent.withOpacity(0.75),
                 ),
@@ -324,6 +410,111 @@ class _ConstellationScreenState extends State<ConstellationScreen>
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Попап «Нова механіка»
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _NewMechanicDialog extends StatelessWidget {
+  final String title;
+  final String description;
+
+  const _NewMechanicDialog({
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+        decoration: BoxDecoration(
+          color: AppTheme.skyColor,
+          border: Border.all(
+            color: AppTheme.accent.withOpacity(0.35),
+            width: 0.9,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'НОВА МЕХАНІКА',
+                        style: AppTheme.labelStyle.copyWith(
+                          fontSize: 10,
+                          letterSpacing: 5,
+                          color: AppTheme.accent.withOpacity(0.80),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        title,
+                        style: AppTheme.titleStyle.copyWith(
+                          fontSize: 20,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(false),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Icon(
+                      Icons.close,
+                      color: AppTheme.textSecondary.withOpacity(0.55),
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              description,
+              style: AppTheme.bodyStyle.copyWith(
+                fontSize: 13,
+                height: 1.6,
+                color: AppTheme.textSecondary.withOpacity(0.85),
+              ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.accent),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
+                ),
+                child: Text(
+                  'ПРОЙТИ ТУТОРІАЛ →',
+                  style: AppTheme.buttonStyle.copyWith(
+                      color: AppTheme.accent, letterSpacing: 2, fontSize: 14),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -362,10 +553,27 @@ class _ConstellationPainter extends CustomPainter {
     this.tappedIndex,
   });
 
-  Offset _pos(ConstellationStar star, Size size) => Offset(
-    mapPadding + star.x * (size.width  - 2 * mapPadding),
-    mapPadding + star.y * (size.height - 2 * mapPadding),
-  );
+  /// Позиція зірки на екрані з урахуванням повороту розділу
+  Offset _pos(ConstellationStar star, Size size) {
+    const pad = mapPadding;
+    final degrees = chapter.rotationDegrees;
+    if (degrees == 0.0) {
+      return Offset(
+        pad + star.x * (size.width - 2 * pad),
+        pad + star.y * (size.height - 2 * pad),
+      );
+    }
+    final angle = degrees * math.pi / 180.0;
+    final dx = star.x - 0.5;
+    final dy = star.y - 0.5;
+    // Поворот за годинниковою стрілкою в системі координат екрану (y вниз)
+    final rx = dx * math.cos(angle) - dy * math.sin(angle) + 0.5;
+    final ry = dx * math.sin(angle) + dy * math.cos(angle) + 0.5;
+    return Offset(
+      pad + rx * (size.width - 2 * pad),
+      pad + ry * (size.height - 2 * pad),
+    );
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -406,31 +614,31 @@ class _ConstellationPainter extends CustomPainter {
       final pos    = _pos(star, size);
       final tapped = tappedIndex == i;
       if (star.isDecoration) {
-        _paintDecorationStar(canvas, pos, star);
+        _paintDecorationStar(canvas, pos, star, size);
       } else if (star.isCompleted) {
         _paintCompleted(canvas, pos, tapped);
-        _paintLabel(canvas, star, pos, active: true);
+        _paintLabel(canvas, size, star, pos, active: true);
       } else if (star.isUnlocked) {
         _paintUnlocked(canvas, pos, tapped, pulse);
-        _paintLabel(canvas, star, pos, active: true);
+        _paintLabel(canvas, size, star, pos, active: true);
       } else {
         _paintLocked(canvas, pos);
-        _paintLabel(canvas, star, pos, active: false);
+        _paintLabel(canvas, size, star, pos, active: false);
       }
     }
   }
 
-  // Декоративна зірка: маленька крапка + тільки грецька літера
-  void _paintDecorationStar(Canvas canvas, Offset pos, ConstellationStar star) {
+  void _paintDecorationStar(Canvas canvas, Offset pos, ConstellationStar star, Size size) {
     canvas.drawCircle(pos, 2.2,
         Paint()..color = AppTheme.starInactive.withOpacity(0.28));
-
-    final labelY = pos.dy < mapPadding + 20 ? pos.dy + 14 : pos.dy - 18;
+    final toRight = pos.dx <= size.width * 0.5;
     _drawText(canvas, star.greekLetter,
-      Offset(pos.dx, labelY),
+      Offset(pos.dx, pos.dy),
       fontSize: 9,
       italic: true,
       color: AppTheme.textSecondary.withOpacity(0.22),
+      hOffset: toRight ? 10.0 : -10.0,
+      rightAlign: !toRight,
     );
   }
 
@@ -489,43 +697,62 @@ class _ConstellationPainter extends CustomPainter {
     );
   }
 
+  /// Мітки збоку від зірки:
+  /// зірки в лівій половині екрана → текст праворуч, у правій → ліворуч.
   void _paintLabel(
     Canvas canvas,
+    Size size,
     ConstellationStar star,
     Offset pos, {
     required bool active,
   }) {
     final opacity   = active ? 0.85 : 0.28;
     final completed = star.isCompleted;
-    final labelY    = pos.dy < mapPadding + 20 ? pos.dy + 26 : pos.dy - 30;
 
+    // Зірка в правій половині → текст ліворуч від неї, і навпаки
+    final toRight  = pos.dx <= size.width * 0.5;
+    const gap      = 12.0; // px від центру зірки до ближнього краю тексту
+    final anchorX  = toRight ? pos.dx + gap : pos.dx - gap;
+    final rightAln = !toRight; // right-align коли текст ліворуч від зірки
+
+    // Три рядки вертикально відцентровані відносно зірки
     _drawText(canvas, completed ? '✓' : '${star.levelIndex + 1}',
-      Offset(pos.dx, labelY), fontSize: 9,
+      Offset(anchorX, pos.dy - 13), fontSize: 9,
+      hOffset: 0,
+      rightAlign: rightAln,
       color: completed
           ? AppTheme.accent.withOpacity(0.9)
           : AppTheme.textSecondary.withOpacity(opacity * 0.45));
 
     _drawText(canvas, star.greekLetter,
-      Offset(pos.dx, labelY + 13), fontSize: 12, italic: true,
+      Offset(anchorX, pos.dy), fontSize: 12, italic: true,
+      hOffset: 0,
+      rightAlign: rightAln,
       color: completed
           ? AppTheme.accent.withOpacity(0.9)
           : AppTheme.textSecondary.withOpacity(opacity));
 
     _drawText(canvas, star.nameLatin,
-      Offset(pos.dx, labelY + 25), fontSize: 9,
-      color: AppTheme.textSecondary.withOpacity(opacity * 0.60),
-      letterSpacing: 0.8);
+      Offset(anchorX, pos.dy + 13), fontSize: 9,
+      hOffset: 0,
+      rightAlign: rightAln,
+      letterSpacing: 0.8,
+      color: AppTheme.textSecondary.withOpacity(opacity * 0.60));
   }
 
   void _drawText(
     Canvas canvas,
     String text,
-    Offset center, {
+    Offset anchor, {
     double fontSize = 12,
     bool italic = false,
     double opacity = 1.0,
     double letterSpacing = 0,
     Color? color,
+    // hOffset: горизонтальний зсув від anchor.dx (після виміру ширини тексту)
+    double hOffset = 0,
+    // rightAlign: текст «причеплений» правим краєм до anchor.dx
+    bool rightAlign = false,
   }) {
     final tp = TextPainter(
       text: TextSpan(
@@ -540,7 +767,11 @@ class _ConstellationPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
+
+    final dx = rightAlign
+        ? anchor.dx - tp.width + hOffset   // правий край = anchor.dx
+        : anchor.dx + hOffset;             // лівий край = anchor.dx
+    tp.paint(canvas, Offset(dx, anchor.dy - tp.height / 2));
   }
 
   @override

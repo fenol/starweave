@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
+import '../data/mechanics_state.dart';
 import '../theme/app_theme.dart';
 import 'tutorial_screen.dart';
+import 'tutorial_jump_screen.dart';
 import 'tutorial_binary_screen.dart';
 
-class MechanicsScreen extends StatelessWidget {
+class MechanicsScreen extends StatefulWidget {
   const MechanicsScreen({super.key});
+
+  @override
+  State<MechanicsScreen> createState() => _MechanicsScreenState();
+}
+
+class _MechanicsScreenState extends State<MechanicsScreen> {
+
+  Future<void> _openTutorial(Widget screen) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => screen),
+    );
+    // Перебудовуємо після повернення — стан міг змінитись
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,25 +40,34 @@ class MechanicsScreen extends StatelessWidget {
                   mainAxisSpacing: 12,
                   childAspectRatio: 1.35,
                   children: [
-                    _MechanicTile(
-                      name: 'СПЕКТР',
-                      description: 'Ланцюжок\nспектральних класів',
-                      unlocked: true,
-                      onTutorial: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) => const TutorialScreen()),
-                      ),
-                    ),
-                    _MechanicTile(
-                      name: 'БІНАРНА ЗІРКА',
-                      description: 'Зірка з двома\nстанами спектру',
-                      unlocked: true,
-                      onTutorial: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) => const TutorialBinaryScreen()),
-                      ),
-                    ),
-                    for (int i = 0; i < 6; i++) const _LockedMechanicTile(),
+                    // ── Спектральний шлях ──────────────────────────────
+                    MechanicsState.spectrumUnlocked
+                        ? _MechanicTile(
+                            name: 'СПЕКТР',
+                            description: 'Ланцюжок\nспектральних класів',
+                            onTutorial: () => _openTutorial(const TutorialScreen()),
+                          )
+                        : const _LockedMechanicTile(),
+
+                    // ── Стрибки ────────────────────────────────────────
+                    MechanicsState.jumpsUnlocked
+                        ? _MechanicTile(
+                            name: 'СТРИБКИ',
+                            description: 'Перехід через\nпорожні клітинки',
+                            onTutorial: () => _openTutorial(const TutorialJumpScreen()),
+                          )
+                        : const _LockedMechanicTile(),
+
+                    // ── Бінарна зірка ──────────────────────────────────
+                    MechanicsState.binaryUnlocked
+                        ? _MechanicTile(
+                            name: 'БІНАРНА ЗІРКА',
+                            description: 'Зірка з двома\nстанами спектру',
+                            onTutorial: () => _openTutorial(const TutorialBinaryScreen()),
+                          )
+                        : const _LockedMechanicTile(),
+
+                    for (int i = 0; i < 5; i++) const _LockedMechanicTile(),
                   ],
                 ),
               ),
@@ -87,13 +112,11 @@ class MechanicsScreen extends StatelessWidget {
 class _MechanicTile extends StatelessWidget {
   final String name;
   final String description;
-  final bool unlocked;
   final VoidCallback? onTutorial;
 
   const _MechanicTile({
     required this.name,
     required this.description,
-    required this.unlocked,
     this.onTutorial,
   });
 

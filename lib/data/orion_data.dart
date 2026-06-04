@@ -2,9 +2,8 @@ import '../models/constellation_model.dart';
 
 /// Дані другого розділу — Оріон
 ///
-/// Зірки впорядковані від середньої складності (пояс) до найскладніших (плечі/ноги).
-/// Позиції x/y (0.0–1.0) відповідають класичному зображенню Оріона:
-/// широкий пояс посередині, плечі вгорі, ноги внизу.
+/// Зірки впорядковані по грецькому алфавіту: α → β → γ → δ → ε → ζ → κ
+/// α Betelgeuse (найлегший, перший) → κ Saiph (найважчий, останній)
 class OrionData {
   static final ConstellationChapter chapter = ConstellationChapter(
     name: 'Оріон',
@@ -40,89 +39,89 @@ class OrionData {
         'Йому всього вісім мільйонів років, і він теж приречений: '
         'блакитні гіганти живуть яскраво, але недовго.',
     stars: [
-      // ─── Рівень 1 · δ Mintaka · ліва зірка поясу ─────────────────────────
-      ConstellationStar(
-        name: 'Мінтака',
-        nameLatin: 'Mintaka',
-        greekLetter: 'δ',
-        x: 0.24,
-        y: 0.52,
-        levelIndex: 0,
-        isUnlocked: true,
-      ),
-
-      // ─── Рівень 2 · ε Alnilam · центр поясу ──────────────────────────────
-      ConstellationStar(
-        name: 'Альнілам',
-        nameLatin: 'Alnilam',
-        greekLetter: 'ε',
-        x: 0.50,
-        y: 0.54,
-        levelIndex: 1,
-      ),
-
-      // ─── Рівень 3 · ζ Alnitak · права зірка поясу ────────────────────────
-      ConstellationStar(
-        name: 'Альнітак',
-        nameLatin: 'Alnitak',
-        greekLetter: 'ζ',
-        x: 0.74,
-        y: 0.56,
-        levelIndex: 2,
-      ),
-
-      // ─── Рівень 4 · γ Bellatrix · праве плече ────────────────────────────
-      ConstellationStar(
-        name: 'Беллатрікс',
-        nameLatin: 'Bellatrix',
-        greekLetter: 'γ',
-        x: 0.68,
-        y: 0.22,
-        levelIndex: 3,
-      ),
-
-      // ─── Рівень 5 · κ Saiph · ліва нога ─────────────────────────────────
-      ConstellationStar(
-        name: 'Сайф',
-        nameLatin: 'Saiph',
-        greekLetter: 'κ',
-        x: 0.28,
-        y: 0.82,
-        levelIndex: 4,
-      ),
-
-      // ─── Рівень 6 · α Betelgeuse · ліве плече ────────────────────────────
+      // ─── Рівень 1 · α Betelgeuse · ліве плече · найлегший ───────────────
       ConstellationStar(
         name: 'Бетельгейзе',
         nameLatin: 'Betelgeuse',
         greekLetter: 'α',
         x: 0.32,
         y: 0.26,
-        levelIndex: 5,
+        levelIndex: 0,
+        isUnlocked: true,
       ),
 
-      // ─── Рівень 7 · β Rigel · права нога · найяскравіша ─────────────────
+      // ─── Рівень 2 · β Rigel · права нога ─────────────────────────────────
       ConstellationStar(
         name: 'Рігель',
         nameLatin: 'Rigel',
         greekLetter: 'β',
         x: 0.76,
         y: 0.80,
+        levelIndex: 1,
+      ),
+
+      // ─── Рівень 3 · γ Bellatrix · праве плече ────────────────────────────
+      ConstellationStar(
+        name: 'Беллатрікс',
+        nameLatin: 'Bellatrix',
+        greekLetter: 'γ',
+        x: 0.68,
+        y: 0.22,
+        levelIndex: 2,
+      ),
+
+      // ─── Рівень 4 · δ Mintaka · ліва зірка поясу ─────────────────────────
+      ConstellationStar(
+        name: 'Мінтака',
+        nameLatin: 'Mintaka',
+        greekLetter: 'δ',
+        x: 0.24,
+        y: 0.52,
+        levelIndex: 3,
+      ),
+
+      // ─── Рівень 5 · ε Alnilam · центр поясу ──────────────────────────────
+      ConstellationStar(
+        name: 'Альнілам',
+        nameLatin: 'Alnilam',
+        greekLetter: 'ε',
+        x: 0.50,
+        y: 0.54,
+        levelIndex: 4,
+      ),
+
+      // ─── Рівень 6 · ζ Alnitak · права зірка поясу ────────────────────────
+      ConstellationStar(
+        name: 'Альнітак',
+        nameLatin: 'Alnitak',
+        greekLetter: 'ζ',
+        x: 0.74,
+        y: 0.56,
+        levelIndex: 5,
+      ),
+
+      // ─── Рівень 7 · κ Saiph · ліва нога · найважчий ─────────────────────
+      ConstellationStar(
+        name: 'Сайф',
+        nameLatin: 'Saiph',
+        greekLetter: 'κ',
+        x: 0.28,
+        y: 0.82,
         levelIndex: 6,
       ),
     ],
     lines: [
       // ── Плечі ─────────────────────────────────────────────────────────────
-      const ConstellationLine(5, 3), // Betelgeuse → Bellatrix
+      const ConstellationLine(0, 2), // α Betelgeuse → γ Bellatrix
       // ── Торс (плечі → пояс) ──────────────────────────────────────────────
-      const ConstellationLine(5, 0), // Betelgeuse → Mintaka
-      const ConstellationLine(3, 2), // Bellatrix  → Alnitak
+      const ConstellationLine(0, 3), // α Betelgeuse → δ Mintaka
+      const ConstellationLine(2, 5), // γ Bellatrix  → ζ Alnitak
       // ── Пояс ─────────────────────────────────────────────────────────────
-      const ConstellationLine(0, 1), // Mintaka  → Alnilam
-      const ConstellationLine(1, 2), // Alnilam  → Alnitak
+      const ConstellationLine(3, 4), // δ Mintaka  → ε Alnilam
+      const ConstellationLine(4, 5), // ε Alnilam  → ζ Alnitak
       // ── Ноги ─────────────────────────────────────────────────────────────
-      const ConstellationLine(0, 4), // Mintaka → Saiph
-      const ConstellationLine(2, 6), // Alnitak → Rigel
+      const ConstellationLine(3, 6), // δ Mintaka  → κ Saiph
+      const ConstellationLine(5, 1), // ζ Alnitak  → β Rigel
     ],
   );
 }

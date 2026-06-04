@@ -18,7 +18,7 @@ class CassiopeiaLevel3 {
     starName: 'Наві',
     starNameLatin: 'Navi',
     constellation: 'Кассіопея',
-    goalText: 'Шлях петляє — бінарна зірка допоможе розплутати спектр',
+    goalText: 'Знайди шлях від А до В',
     pathLength: 16,
     targetBrightness: null,
     solutionCount: 1,

@@ -17,6 +17,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _titleController;
   late AnimationController _progressController;
   late AnimationController _glowController;
+  late AnimationController _buttonController;
 
   final List<_StarParticle> _stars = [];
   final Random _random = Random();
@@ -61,6 +62,11 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 2200),
     );
 
+    _buttonController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+
     Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) _glowController.forward();
     });
@@ -73,18 +79,21 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) _progressController.forward();
     });
 
-    Future.delayed(const Duration(milliseconds: 3800), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, _, _) => const MainMenuScreen(),
-            transitionDuration: const Duration(milliseconds: 700),
-            transitionsBuilder: (_, animation, _, child) =>
-                FadeTransition(opacity: animation, child: child),
-          ),
-        );
-      }
+    // Кнопка з'являється після завершення прогрес-анімації
+    Future.delayed(const Duration(milliseconds: 3400), () {
+      if (mounted) _buttonController.forward();
     });
+  }
+
+  void _navigateToMenu() {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, _, _) => const MainMenuScreen(),
+        transitionDuration: const Duration(milliseconds: 700),
+        transitionsBuilder: (_, animation, _, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
   }
 
   @override
@@ -93,6 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
     _titleController.dispose();
     _progressController.dispose();
     _glowController.dispose();
+    _buttonController.dispose();
     super.dispose();
   }
 
@@ -107,9 +117,9 @@ class _SplashScreenState extends State<SplashScreen>
           // Шар 1: зірки
           ..._stars.map((star) => _buildStar(star, size)),
 
-          // Шар 2: aurora glow знизу центру
+          // Шар 2: aurora glow — від низу до тексту в центрі
           Positioned(
-            bottom: size.height * 0.15,
+            bottom: 0,
             left: 0,
             right: 0,
             child: AnimatedBuilder(
@@ -120,19 +130,20 @@ class _SplashScreenState extends State<SplashScreen>
                   curve: Curves.easeOut,
                 ).value;
                 return Opacity(
-                  opacity: glow * 0.6,
+                  opacity: glow,
                   child: Container(
-                    height: size.height * 0.25,
-                    decoration: const BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment.bottomCenter,
-                        radius: 1.0,
+                    height: size.height * 0.62,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
                         colors: [
-                          Color(0xFF1B3A6B), // синя серцевина
-                          Color(0xFF0D2040), // темніший синій
+                          const Color(0xFF1B3A6B).withValues(alpha: 0.85),
+                          const Color(0xFF0F2850).withValues(alpha: 0.45),
+                          const Color(0xFF0A1F3D).withValues(alpha: 0.15),
                           Colors.transparent,
                         ],
-                        stops: [0.0, 0.5, 1.0],
+                        stops: const [0.0, 0.3, 0.6, 1.0],
                       ),
                     ),
                   ),
@@ -166,7 +177,7 @@ class _SplashScreenState extends State<SplashScreen>
                   Text('WEAVE', style: AppTheme.titleStyle),
                   const SizedBox(height: 16),
                   Text(
-                    'Т К Е М О   Н Е Б О',
+                    'М І Ф И     З О Р Я Н О Г О     Н Е Б А',
                     style: AppTheme.labelStyle.copyWith(
                       fontSize: 11,
                       color: AppTheme.textSecondary,
@@ -178,9 +189,9 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // Шар 4: подвійна прогрес-лінія внизу
+          // Шар 4: подвійна прогрес-лінія
           Positioned(
-            bottom: 48,
+            bottom: 104,
             left: size.width * 0.2,
             right: size.width * 0.2,
             child: AnimatedBuilder(
@@ -221,6 +232,44 @@ class _SplashScreenState extends State<SplashScreen>
                   ],
                 );
               },
+            ),
+          ),
+          // Шар 5: кнопка "ПОЧАТИ"
+          Positioned(
+            bottom: 40,
+            left: 24,
+            right: 24,
+            child: AnimatedBuilder(
+              animation: _buttonController,
+              builder: (context, child) {
+                final progress = CurvedAnimation(
+                  parent: _buttonController,
+                  curve: Curves.easeOut,
+                ).value;
+                return IgnorePointer(
+                  ignoring: progress < 0.5,
+                  child: Opacity(opacity: progress, child: child),
+                );
+              },
+              child: OutlinedButton(
+                onPressed: _navigateToMenu,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.accent, width: 1),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  minimumSize: const Size(double.infinity, 0),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
+                  overlayColor: AppTheme.accent,
+                ),
+                child: Text(
+                  'П О Ч А Т И',
+                  style: AppTheme.labelStyle.copyWith(
+                    fontSize: 12,
+                    color: AppTheme.accent,
+                    letterSpacing: 5,
+                  ),
+                ),
+              ),
             ),
           ),
         ],

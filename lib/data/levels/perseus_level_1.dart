@@ -21,7 +21,7 @@ class PerseusLevel1 {
     starName: 'Мірфак',
     starNameLatin: 'Mirfak',
     constellation: 'Персей',
-    goalText: 'Прокладіть шлях від А до В',
+    goalText: 'Знайди шлях від А до В',
     pathLength: 16,
     targetBrightness: null,
     solutionCount: 1,

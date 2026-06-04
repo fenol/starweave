@@ -19,7 +19,7 @@ class CassiopeiaLevel4 {
     starName: 'Рухба',
     starNameLatin: 'Ruchbah',
     constellation: 'Кассіопея',
-    goalText: 'Хибна W — обережно: не всі зірки ведуть до В',
+    goalText: 'Знайди шлях від А до В',
     pathLength: 18,
     targetBrightness: null,
     solutionCount: 1,

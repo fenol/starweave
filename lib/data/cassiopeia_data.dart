@@ -13,12 +13,13 @@ class CassiopeiaData {
   static final ConstellationChapter chapter = ConstellationChapter(
     name: 'Кассіопея',
     nameLatin: 'Cassiopeia',
+    firstLevelMechanic: 'binary',
     mythQuote:
         '«Красивіша за богинь — хизувалась цариця. '
         'Тепер вона вічно кружляє навколо Полярної зірки, '
         'і половину часу висить донизу головою.»',
     storyOnCompletion: false,
-    storyTitle: 'Хвастлива Цариця',
+    storyTitle: 'Цариця, яка полюбляє хвалитись',
     story:
         'Кассіопея — цариця Ефіопії, дружина царя Цефея і мати прекрасної '
         'Андромеди. Вона була вродливою, але ще більше пишалась цією красою. '

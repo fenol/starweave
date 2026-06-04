@@ -18,7 +18,7 @@ class CassiopeiaLevel2 {
     starName: 'Шедар',
     starNameLatin: 'Schedar',
     constellation: 'Кассіопея',
-    goalText: 'Маршрут змінює напрямок — використай бінарні зірки',
+    goalText: 'Знайди шлях від А до В',
     pathLength: 15,
     targetBrightness: null,
     solutionCount: 1,

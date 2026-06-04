@@ -19,7 +19,7 @@ class CassiopeiaLevel5 {
     starName: 'Сегін',
     starNameLatin: 'Segin',
     constellation: 'Кассіопея',
-    goalText: 'Корона W — найскладніший шлях Кассіопеї',
+    goalText: 'Знайди шлях від А до В',
     pathLength: 20,
     targetBrightness: null,
     solutionCount: 1,

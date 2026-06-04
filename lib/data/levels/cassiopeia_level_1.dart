@@ -18,7 +18,7 @@ class CassiopeiaLevel1 {
     starName: 'Каф',
     starNameLatin: 'Caph',
     constellation: 'Кассіопея',
-    goalText: 'Знайди шлях через бінарну зірку від А до В',
+    goalText: 'Знайди шлях від А до В',
     pathLength: 14,
     targetBrightness: null,
     solutionCount: 1,

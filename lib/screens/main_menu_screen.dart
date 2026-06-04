@@ -1,11 +1,37 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../data/ursa_major_data.dart';
+import '../data/ursa_major_levels.dart';
+import 'constellation_screen.dart';
 import 'sky_map_screen.dart';
 import 'mechanics_screen.dart';
 
-class MainMenuScreen extends StatelessWidget {
+class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({super.key});
+
+  @override
+  State<MainMenuScreen> createState() => _MainMenuScreenState();
+}
+
+class _MainMenuScreenState extends State<MainMenuScreen> {
+
+  bool get _ursaCompleted => UrsaMajorData.chapter.isFullyCompleted;
+
+  Future<void> _openUrsaMajor() async {
+    await Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ConstellationScreen(
+        chapter: UrsaMajorData.chapter,
+        levelLoader: UrsaMajorLevels.getByIndex,
+      ),
+    ));
+    if (mounted) setState(() {});
+  }
+
+  void _skipUrsaMajor() {
+    UrsaMajorData.chapter.skipAll();
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,78 +41,122 @@ class MainMenuScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 24),
+            const SizedBox(height: 36),
 
-            // ── Маленький логотип ──────────────────────────────────────
+            // ── Логотип ────────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Text(
                 'STARWEAVE',
                 style: AppTheme.labelStyle.copyWith(
-                  fontSize: 12,
+                  fontSize: 18,
                   letterSpacing: 5,
-                  color: AppTheme.textSecondary.withValues(alpha: 0.55),
+                  color: AppTheme.textSecondary.withValues(alpha: 0.72),
                 ),
               ),
             ),
 
             const SizedBox(height: 40),
 
-            // ── Заголовок секції ───────────────────────────────────────
+            // ── Заголовок розділу Ведмедиця ────────────────────────────
             Padding(
-              padding: const EdgeInsets.only(left: 20),
+              padding: const EdgeInsets.only(left: 30),
+              child: Text(
+                'РОЗДІЛ',
+                style: AppTheme.labelStyle.copyWith(
+                  fontSize: 11,
+                  letterSpacing: 5,
+                  color: AppTheme.textSecondary.withValues(alpha: 0.59),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ── Тайл Велика Ведмедиця з кнопкою SKIP ──────────────────
+            Padding(
+              padding: const EdgeInsets.only(left: 24),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _UrsaMajorTile(
+                        completed: _ursaCompleted,
+                        onTap: _openUrsaMajor,
+                      ),
+                    ),
+                    if (!_ursaCompleted)
+                      _SkipButton(onTap: _skipUrsaMajor),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            // ── Заголовок Колекції ─────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.only(left: 30),
               child: Text(
                 'КОЛЕКЦІЇ',
                 style: AppTheme.labelStyle.copyWith(
-                  fontSize: 9,
+                  fontSize: 14,
                   letterSpacing: 5,
-                  color: AppTheme.textSecondary.withValues(alpha: 0.45),
+                  color: AppTheme.textSecondary.withValues(alpha: 0.59),
                 ),
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
-            // ── Плитка «Північне зимове небо» — ліво відступ, до краю ──
-            Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: _CollectionTile(
-                label: 'ПІВНІЧ ВЗИМКУ',
-                title: 'ПІВНІЧНЕ\nЗИМОВЕ НЕБО',
-                unlocked: true,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SkyMapScreen()),
+            // ── Прокручуваний список колекцій ──────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 24),
+                      child: _ursaCompleted
+                          ? _CollectionTile(
+                              label: 'ПІВНІЧ ВЗИМКУ',
+                              title: 'ПІВНІЧНЕ\nЗИМОВЕ НЕБО',
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SkyMapScreen(),
+                                ),
+                              ),
+                            )
+                          : const _LockedCollectionTile(
+                              reason: 'Пройди Велику Ведмедицю'),
+                    ),
+                    const SizedBox(height: 12),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 24),
+                      child: _LockedCollectionTile(),
+                    ),
+                    const SizedBox(height: 12),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 24),
+                      child: _LockedCollectionTile(),
+                    ),
+                  ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 8),
-
-            // ── Заблоковані плитки (такого ж розміру) ─────────────────
-            Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const _LockedCollectionTile(),
-            ),
-
-            const SizedBox(height: 8),
-
-            Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const _LockedCollectionTile(),
-            ),
-
-            const Spacer(),
-
-            // ── Механіки ──────────────────────────────────────────────
+            // ── Механіки — завжди внизу ────────────────────────────────
             const Divider(
               color: Color(0x1A7EB8D4),
               height: 1,
-              indent: 20,
-              endIndent: 20,
+              indent: 30,
+              endIndent: 30,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              padding: const EdgeInsets.fromLTRB(30, 0, 30, 36),
               child: GestureDetector(
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const MechanicsScreen()),
@@ -96,23 +166,23 @@ class MainMenuScreen extends StatelessWidget {
                     Text(
                       'МЕХАНІКИ',
                       style: AppTheme.labelStyle.copyWith(
-                        fontSize: 10,
+                        fontSize: 15,
                         letterSpacing: 4,
                         color: AppTheme.textSecondary,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Text(
                       '→',
                       style: AppTheme.labelStyle.copyWith(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary.withValues(alpha: 0.55),
+                        fontSize: 18,
+                        color: AppTheme.textSecondary.withValues(alpha: 0.72),
                       ),
                     ),
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                          horizontal: 12, vertical: 5),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: AppTheme.accent.withValues(alpha: 0.4),
@@ -123,9 +193,9 @@ class MainMenuScreen extends StatelessWidget {
                       child: Text(
                         '1 / 8',
                         style: AppTheme.labelStyle.copyWith(
-                          fontSize: 9,
+                          fontSize: 14,
                           letterSpacing: 2,
-                          color: AppTheme.accent.withValues(alpha: 0.7),
+                          color: AppTheme.accent.withValues(alpha: 0.91),
                         ),
                       ),
                     ),
@@ -140,19 +210,192 @@ class MainMenuScreen extends StatelessWidget {
   }
 }
 
-// ── Плитка колекції (активна) ─────────────────────────────────────────────────
+// ── Тайл Великої Ведмедиці ────────────────────────────────────────────────────
+
+class _UrsaMajorTile extends StatelessWidget {
+  final bool completed;
+  final VoidCallback onTap;
+
+  const _UrsaMajorTile({required this.completed, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = completed
+        ? AppTheme.accent.withValues(alpha: 0.40)
+        : AppTheme.constellationLine.withValues(alpha: 0.55);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 159,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border(
+            top:    BorderSide(color: borderColor, width: 0.9),
+            left:   BorderSide(color: borderColor, width: 0.9),
+            bottom: BorderSide(color: borderColor, width: 0.9),
+          ),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(6),
+            bottomLeft: Radius.circular(6),
+          ),
+          color: AppTheme.skyColor.withValues(alpha: 0.55),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(6),
+            bottomLeft: Radius.circular(6),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(child: CustomPaint(painter: _StarsPainter())),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 18, 30, 18),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'СУЗІР\'Я',
+                                style: AppTheme.labelStyle.copyWith(
+                                  fontSize: 11,
+                                  letterSpacing: 5,
+                                  color: AppTheme.textSecondary
+                                      .withValues(alpha: 0.65),
+                                ),
+                              ),
+                              if (completed) ...[
+                                const SizedBox(width: 10),
+                                Text(
+                                  '✓',
+                                  style: AppTheme.labelStyle.copyWith(
+                                    fontSize: 11,
+                                    color: AppTheme.accent.withValues(alpha: 1.0),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'ВЕЛИКА ВЕДМЕДИЦЯ',
+                                  style: AppTheme.titleStyle.copyWith(
+                                    fontSize: 24,
+                                    letterSpacing: 3,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Ursa Major',
+                                style: AppTheme.labelStyle.copyWith(
+                                  fontSize: 12,
+                                  letterSpacing: 3,
+                                  color: AppTheme.textSecondary
+                                      .withValues(alpha: 0.65),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Text(
+                          completed ? '↻' : '→',
+                          style: AppTheme.labelStyle.copyWith(
+                            fontSize: 22,
+                            color: AppTheme.accent
+                                .withValues(alpha: completed ? 0.59 : 0.85),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Skip-кнопка ────────────────────────────────────────────────────────────────
+
+class _SkipButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SkipButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+                color: AppTheme.textSecondary.withValues(alpha: 0.12),
+                width: 0.8),
+            right: BorderSide(
+                color: AppTheme.textSecondary.withValues(alpha: 0.12),
+                width: 0.8),
+            bottom: BorderSide(
+                color: AppTheme.textSecondary.withValues(alpha: 0.12),
+                width: 0.8),
+          ),
+          borderRadius: const BorderRadius.only(
+            topRight: Radius.circular(6),
+            bottomRight: Radius.circular(6),
+          ),
+        ),
+        child: Center(
+          child: RotatedBox(
+            quarterTurns: 1,
+            child: Text(
+              'SKIP',
+              style: AppTheme.labelStyle.copyWith(
+                fontSize: 11,
+                letterSpacing: 2.5,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Активна плитка колекції ───────────────────────────────────────────────────
 
 class _CollectionTile extends StatelessWidget {
   final String label;
   final String title;
-  final bool unlocked;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
   const _CollectionTile({
     required this.label,
     required this.title,
-    required this.unlocked,
-    this.onTap,
+    required this.onTap,
   });
 
   @override
@@ -160,7 +403,7 @@ class _CollectionTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 106,
+        height: 159,
         width: double.infinity,
         decoration: BoxDecoration(
           border: Border(
@@ -169,21 +412,21 @@ class _CollectionTile extends StatelessWidget {
             bottom: BorderSide(color: AppTheme.constellationLine.withValues(alpha: 0.50), width: 0.9),
           ),
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(4),
-            bottomLeft: Radius.circular(4),
+            topLeft: Radius.circular(6),
+            bottomLeft: Radius.circular(6),
           ),
           color: AppTheme.skyColor.withValues(alpha: 0.55),
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(4),
-            bottomLeft: Radius.circular(4),
+            topLeft: Radius.circular(6),
+            bottomLeft: Radius.circular(6),
           ),
           child: Stack(
             children: [
               Positioned.fill(child: CustomPaint(painter: _StarsPainter())),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 20, 12),
+                padding: const EdgeInsets.fromLTRB(24, 18, 30, 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,15 +434,15 @@ class _CollectionTile extends StatelessWidget {
                     Text(
                       label,
                       style: AppTheme.labelStyle.copyWith(
-                        fontSize: 9,
+                        fontSize: 14,
                         letterSpacing: 5,
-                        color: AppTheme.textSecondary.withValues(alpha: 0.50),
+                        color: AppTheme.textSecondary.withValues(alpha: 0.65),
                       ),
                     ),
                     Text(
                       title,
                       style: AppTheme.titleStyle.copyWith(
-                        fontSize: 20,
+                        fontSize: 30,
                         letterSpacing: 4,
                         height: 1.25,
                       ),
@@ -208,13 +451,13 @@ class _CollectionTile extends StatelessWidget {
                 ),
               ),
               Positioned(
-                right: 16,
-                bottom: 14,
+                right: 24,
+                bottom: 21,
                 child: Text(
                   '→',
                   style: AppTheme.labelStyle.copyWith(
-                    fontSize: 16,
-                    color: AppTheme.accent.withValues(alpha: 0.60),
+                    fontSize: 24,
+                    color: AppTheme.accent.withValues(alpha: 0.78),
                   ),
                 ),
               ),
@@ -226,15 +469,17 @@ class _CollectionTile extends StatelessWidget {
   }
 }
 
-// ── Заблокована плитка (той самий розмір) ─────────────────────────────────────
+// ── Заблокована плитка колекції ───────────────────────────────────────────────
 
 class _LockedCollectionTile extends StatelessWidget {
-  const _LockedCollectionTile();
+  final String? reason;
+  const _LockedCollectionTile({this.reason});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 106,
+      height: 159,
+      width: double.infinity,
       decoration: BoxDecoration(
         border: Border(
           top:    BorderSide(color: AppTheme.textSecondary.withValues(alpha: 0.12), width: 0.8),
@@ -242,25 +487,43 @@ class _LockedCollectionTile extends StatelessWidget {
           bottom: BorderSide(color: AppTheme.textSecondary.withValues(alpha: 0.12), width: 0.8),
         ),
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(4),
-          bottomLeft: Radius.circular(4),
+          topLeft: Radius.circular(6),
+          bottomLeft: Radius.circular(6),
         ),
       ),
       child: Center(
-        child: Text(
-          '?',
-          style: AppTheme.titleStyle.copyWith(
-            fontSize: 26,
-            letterSpacing: 0,
-            color: AppTheme.textSecondary.withValues(alpha: 0.16),
-          ),
-        ),
+        child: reason != null
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.lock_outline,
+                      color: AppTheme.textSecondary.withValues(alpha: 0.22),
+                      size: 26),
+                  const SizedBox(height: 8),
+                  Text(
+                    reason!,
+                    style: AppTheme.labelStyle.copyWith(
+                      fontSize: 10,
+                      letterSpacing: 2,
+                      color: AppTheme.textSecondary.withValues(alpha: 0.36),
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                '?',
+                style: AppTheme.titleStyle.copyWith(
+                  fontSize: 39,
+                  letterSpacing: 0,
+                  color: AppTheme.textSecondary.withValues(alpha: 0.21),
+                ),
+              ),
       ),
     );
   }
 }
 
-// ── Мінімальне зоряне тло плитки ─────────────────────────────────────────────
+// ── Зоряне тло ────────────────────────────────────────────────────────────────
 
 class _StarsPainter extends CustomPainter {
   static final _stars = List.generate(30, (i) {

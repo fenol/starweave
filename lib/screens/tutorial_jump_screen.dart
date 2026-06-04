@@ -3,12 +3,18 @@ import 'package:provider/provider.dart';
 import '../data/tutorial_jump_data.dart';
 import '../data/tutorial_spectrum_data.dart';
 import '../game/game_state.dart';
+import '../models/level_model.dart';
 import '../models/star_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/star_grid_widget.dart';
+import 'level_screen.dart';
+import 'tutorial_screen.dart';
 
 class TutorialJumpScreen extends StatefulWidget {
-  const TutorialJumpScreen({super.key});
+  /// Якщо передано — після успіху показуємо «Перейти на рівень»
+  final LevelData? firstLevel;
+
+  const TutorialJumpScreen({super.key, this.firstLevel});
 
   @override
   State<TutorialJumpScreen> createState() => _TutorialJumpScreenState();
@@ -94,7 +100,7 @@ class _TutorialJumpScreenState extends State<TutorialJumpScreen>
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => Navigator.of(context).pop(TutorialResult.menu),
             child: const Icon(Icons.chevron_left,
                 color: AppTheme.textSecondary, size: 24),
           ),
@@ -196,7 +202,7 @@ class _TutorialJumpScreenState extends State<TutorialJumpScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Center(
         child: AspectRatio(
-          aspectRatio: 1.0, // 5×5 grid
+          aspectRatio: 1.0,
           child: StarGridWidget(
             level: _gameState.level,
             gameState: _gameState,
@@ -213,6 +219,7 @@ class _TutorialJumpScreenState extends State<TutorialJumpScreen>
       return _buildSuccessButtons();
     }
 
+    /* Легенда яскравості зірок — закоментована, буде використана пізніше
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -239,9 +246,63 @@ class _TutorialJumpScreenState extends State<TutorialJumpScreen>
         ],
       ),
     );
+    */
+    return const SizedBox.shrink();
   }
 
   Widget _buildSuccessButtons() {
+    if (widget.firstLevel != null) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'ТУТОРІАЛ ПРОЙДЕНО · СТРИБКИ',
+              style: AppTheme.labelStyle.copyWith(
+                  fontSize: 10, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  final completed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => LevelScreen(level: widget.firstLevel!),
+                    ),
+                  );
+                  if (!mounted) return;
+                  Navigator.of(context).pop(
+                    completed == true
+                        ? TutorialResult.goToLevel
+                        : TutorialResult.menu,
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.accent),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
+                ),
+                child: Text('ПЕРЕЙТИ НА РІВЕНЬ →',
+                    style: AppTheme.buttonStyle.copyWith(
+                        color: AppTheme.accent, letterSpacing: 2)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(TutorialResult.menu),
+              child: Text('МЕНЮ СУЗіР\'Я',
+                  style: AppTheme.buttonStyle.copyWith(
+                      color: AppTheme.textSecondary, letterSpacing: 2)),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -256,22 +317,18 @@ class _TutorialJumpScreenState extends State<TutorialJumpScreen>
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () =>
+                  Navigator.of(context).pop(TutorialResult.menu),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppTheme.accent),
                 padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4)),
               ),
               child: Text('ПОВЕРНУТИСЬ →',
                   style: AppTheme.buttonStyle.copyWith(
                       color: AppTheme.accent, letterSpacing: 2)),
             ),
-          ),
-          const SizedBox(height: 10),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('МЕНЮ',
-                style: AppTheme.buttonStyle.copyWith(
-                    color: AppTheme.textSecondary, letterSpacing: 2)),
           ),
         ],
       ),

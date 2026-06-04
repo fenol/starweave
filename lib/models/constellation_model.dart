@@ -44,6 +44,10 @@ class ConstellationChapter {
   final bool storyOnCompletion;
   final List<ConstellationStar> stars; // 7 зірок з позиціями
   final List<ConstellationLine> lines; // лінії ковша
+  // Візуальний поворот сузір'я в градусах за годинниковою стрілкою (0 = без повороту)
+  final double rotationDegrees;
+  // Якщо не null — показати попап механіки при першому кліку на рівень 0
+  final String? firstLevelMechanic;
 
   ConstellationChapter({
     required this.name,
@@ -54,6 +58,8 @@ class ConstellationChapter {
     this.storyOnCompletion = false,
     required this.stars,
     required this.lines,
+    this.rotationDegrees = 0.0,
+    this.firstLevelMechanic,
   });
 
   // Кількість ігрових рівнів (декоративні зірки не рахуються)

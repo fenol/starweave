@@ -11,6 +11,7 @@ class PerseusData {
   static final ConstellationChapter chapter = ConstellationChapter(
     name: 'Персей',
     nameLatin: 'Perseus',
+    firstLevelMechanic: 'jumps',
     mythQuote:
         '«Персей підлетів до сплячої Медузи та відтяв їй голову, '
         'дивлячись лише у відображення щита. '
@@ -43,7 +44,7 @@ class PerseusData {
         'Давні астрономи вважали це дивним і лячним, тому назвали зірку '
         'оком Медузи в руці Персея.',
     stars: [
-      // ─── Рівень 1 · α Mirfak · центральна, найяскравіша ─────────────────
+      // ─── Рівень 1 · α Mirfak · центральна, найяскравіша · найлегший ──────
       ConstellationStar(
         name: 'Мірфак',
         nameLatin: 'Mirfak',
@@ -54,78 +55,78 @@ class PerseusData {
         isUnlocked: true,
       ),
 
-      // ─── Рівень 2 · γ Gamma Per · верхній лівий ──────────────────────────
-      ConstellationStar(
-        name: 'Гамма Пер.',
-        nameLatin: 'Gamma Per',
-        greekLetter: 'γ',
-        x: 0.24,
-        y: 0.18,
-        levelIndex: 1,
-      ),
-
-      // ─── Рівень 3 · β Algol · «голова демона» · гілка вліво-вниз ─────────
+      // ─── Рівень 2 · β Algol · «голова демона» ────────────────────────────
       ConstellationStar(
         name: 'Алголь',
         nameLatin: 'Algol',
         greekLetter: 'β',
         x: 0.27,
         y: 0.60,
+        levelIndex: 1,
+      ),
+
+      // ─── Рівень 3 · γ Gamma Per · верхній лівий ──────────────────────────
+      ConstellationStar(
+        name: 'Гамма Пер.',
+        nameLatin: 'Gamma Per',
+        greekLetter: 'γ',
+        x: 0.24,
+        y: 0.18,
         levelIndex: 2,
       ),
 
-      // ─── Рівень 4 · η Eta Per · крайня верхня ────────────────────────────
-      ConstellationStar(
-        name: 'Ета Пер.',
-        nameLatin: 'Eta Per',
-        greekLetter: 'η',
-        x: 0.07,
-        y: 0.10,
-        levelIndex: 3,
-      ),
-
-      // ─── Рівень 5 · δ Delta Per · правий центр ───────────────────────────
+      // ─── Рівень 4 · δ Delta Per · правий центр ───────────────────────────
       ConstellationStar(
         name: 'Дельта Пер.',
         nameLatin: 'Delta Per',
         greekLetter: 'δ',
         x: 0.68,
         y: 0.37,
-        levelIndex: 4,
+        levelIndex: 3,
       ),
 
-      // ─── Рівень 6 · ε Epsilon Per · крайня права ─────────────────────────
+      // ─── Рівень 5 · ε Epsilon Per · крайня права ─────────────────────────
       ConstellationStar(
         name: 'Епсілон Пер.',
         nameLatin: 'Eps Per',
         greekLetter: 'ε',
         x: 0.86,
         y: 0.63,
-        levelIndex: 5,
+        levelIndex: 4,
       ),
 
-      // ─── Рівень 7 · ζ Zeta Per · нижня права · найважча ─────────────────
+      // ─── Рівень 6 · ζ Zeta Per · нижня права ────────────────────────────
       ConstellationStar(
         name: 'Зета Пер.',
         nameLatin: 'Zeta Per',
         greekLetter: 'ζ',
         x: 0.81,
         y: 0.90,
+        levelIndex: 5,
+      ),
+
+      // ─── Рівень 7 · η Eta Per · крайня верхня · найважчий ────────────────
+      ConstellationStar(
+        name: 'Ета Пер.',
+        nameLatin: 'Eta Per',
+        greekLetter: 'η',
+        x: 0.07,
+        y: 0.10,
         levelIndex: 6,
       ),
     ],
     lines: [
       // ── Верхній ланцюг: η → γ → α ──────────────────────────────────────
-      const ConstellationLine(3, 1), // Eta   → Gamma
-      const ConstellationLine(1, 0), // Gamma → Mirfak
+      const ConstellationLine(6, 2), // η Eta Per   → γ Gamma Per
+      const ConstellationLine(2, 0), // γ Gamma Per → α Mirfak
       // ── Гілка Алголя: α → β ────────────────────────────────────────────
-      const ConstellationLine(0, 2), // Mirfak → Algol
+      const ConstellationLine(0, 1), // α Mirfak → β Algol
       // ── Правий ланцюг: α → δ → ε ───────────────────────────────────────
-      const ConstellationLine(0, 4), // Mirfak → Delta
-      const ConstellationLine(4, 5), // Delta  → Epsilon
+      const ConstellationLine(0, 3), // α Mirfak → δ Delta
+      const ConstellationLine(3, 4), // δ Delta  → ε Epsilon
       // ── Нижня дуга: δ → ζ ← ε ─────────────────────────────────────────
-      const ConstellationLine(4, 6), // Delta   → Zeta
-      const ConstellationLine(5, 6), // Epsilon → Zeta
+      const ConstellationLine(3, 5), // δ Delta   → ζ Zeta
+      const ConstellationLine(4, 5), // ε Epsilon → ζ Zeta
     ],
   );
 }

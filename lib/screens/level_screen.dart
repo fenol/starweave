@@ -6,10 +6,6 @@ import '../models/star_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/star_grid_widget.dart';
 
-/// Універсальний екран рівня — працює для всіх 7 рівнів Ursa Major
-/// (і будь-яких майбутніх розділів).
-///
-/// Повертає [true] через Navigator.pop, якщо рівень пройдено.
 class LevelScreen extends StatefulWidget {
   final LevelData level;
 
@@ -26,6 +22,9 @@ class _LevelScreenState extends State<LevelScreen>
   late AnimationController _bannerCtrl;
   late Animation<double> _bannerAnim;
   LevelState _prevState = LevelState.playing;
+
+  // Підказка прихована до першого тапу
+  bool _hintRevealed = false;
 
   @override
   void initState() {
@@ -54,12 +53,15 @@ class _LevelScreenState extends State<LevelScreen>
 
   void _onStateChange() {
     final newState = _gameState.state;
-    // Анімуємо банер лише коли стан змінився — не при кожному кроці
     if (newState != _prevState) {
       _bannerCtrl
         ..reset()
         ..forward();
       _prevState = newState;
+    }
+    // При скиданні шляху (кроки → 0) ховаємо підказку знову
+    if (_gameState.stepCount == 0 && newState == LevelState.playing) {
+      _hintRevealed = false;
     }
     setState(() {});
   }
@@ -107,7 +109,7 @@ class _LevelScreenState extends State<LevelScreen>
           // Інформація про рівень
           Column(
             children: [
-              // "РІВЕНЬ 1 · ЛЕГКО"
+              // "РІВЕНЬ 3 · ПЕРСЕЙ" (замість складності — назва розділу)
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -123,14 +125,15 @@ class _LevelScreenState extends State<LevelScreen>
                         color: AppTheme.textSecondary.withOpacity(0.4)),
                   ),
                   Text(
-                    lvl.difficulty,
+                    lvl.constellation.toUpperCase(),
                     style: AppTheme.labelStyle.copyWith(
-                        fontSize: 10, color: _difficultyColor(lvl.difficulty)),
+                        fontSize: 10,
+                        color: AppTheme.textSecondary.withOpacity(0.75)),
                   ),
                 ],
               ),
               const SizedBox(height: 2),
-              // "δ · MEGREZ"
+              // "β · ALGOL"
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -159,35 +162,22 @@ class _LevelScreenState extends State<LevelScreen>
 
           const Spacer(),
 
-          // Кнопка скидання + DEV skip
-          Column(
-            children: [
-              GestureDetector(
-                onTap: _gameState.resetPath,
-                child: const Icon(Icons.refresh,
-                    color: AppTheme.textSecondary, size: 20),
-              ),
-              const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () => Navigator.of(context).pop(true),
-                child: Text(
-                  'skip',
-                  style: AppTheme.labelStyle.copyWith(
-                    fontSize: 9,
-                    color: AppTheme.textSecondary.withOpacity(0.4),
-                  ),
-                ),
-              ),
-            ],
+          // Кнопка скидання (skip перенесено в нижню панель)
+          GestureDetector(
+            onTap: _gameState.resetPath,
+            child: const Icon(Icons.refresh,
+                color: AppTheme.textSecondary, size: 20),
           ),
         ],
       ),
     );
   }
 
-  // ── Банер стану ───────────────────────────────────────────────────────────
+  // ── Банер стану / підказка ────────────────────────────────────────────────
 
   Widget _buildBanner() {
+    final isPlaying = _gameState.state == LevelState.playing;
+
     final (borderColor, labelColor, labelText, bodyText) =
         switch (_gameState.state) {
       LevelState.success => (
@@ -206,7 +196,7 @@ class _LevelScreenState extends State<LevelScreen>
           const Color(0xFF8B3030),
           const Color(0xFFCC5555),
           'СПЕКТР ЗЛАМАНО',
-          'Лише сусідні класи ±1.\nСпробуйте ще раз.',
+          'Лише сусідні класи ±1.\nСпробуй ще раз.',
         ),
       LevelState.pathTooLong => (
           const Color(0xFF8B3030),
@@ -222,7 +212,12 @@ class _LevelScreenState extends State<LevelScreen>
         ),
     };
 
-    return AnimatedBuilder(
+    // Для стану playing — підказка прихована до тапу
+    final displayBody = isPlaying && !_hintRevealed
+        ? 'Тапни, щоб побачити підказку'
+        : bodyText;
+
+    final banner = AnimatedBuilder(
       animation: _bannerAnim,
       builder: (_, child) => Opacity(opacity: _bannerAnim.value, child: child),
       child: Container(
@@ -244,9 +239,14 @@ class _LevelScreenState extends State<LevelScreen>
                       style: AppTheme.labelStyle
                           .copyWith(fontSize: 10, color: labelColor)),
                   const SizedBox(height: 4),
-                  Text(bodyText,
-                      style: AppTheme.bodyStyle
-                          .copyWith(fontSize: 13, height: 1.5)),
+                  Text(displayBody,
+                      style: AppTheme.bodyStyle.copyWith(
+                        fontSize: 13,
+                        height: 1.5,
+                        color: isPlaying && !_hintRevealed
+                            ? AppTheme.textSecondary.withOpacity(0.5)
+                            : null,
+                      )),
                 ],
               ),
             ),
@@ -254,6 +254,19 @@ class _LevelScreenState extends State<LevelScreen>
         ),
       ),
     );
+
+    // Тап на підказку розкриває текст; інші стани — не інтерактивні
+    if (isPlaying) {
+      return GestureDetector(
+        onTap: () {
+          if (!_hintRevealed) setState(() => _hintRevealed = true);
+        },
+        // opaque — тап не проходить крізь банер до сітки
+        behavior: HitTestBehavior.opaque,
+        child: banner,
+      );
+    }
+    return banner;
   }
 
   // ── Сітка ─────────────────────────────────────────────────────────────────
@@ -267,7 +280,7 @@ class _LevelScreenState extends State<LevelScreen>
           child: StarGridWidget(
             level: _gameState.level,
             gameState: _gameState,
-            highlightCells: const [], // без туторіальних підказок
+            highlightCells: const [],
             showHints: false,
           ),
         ),
@@ -295,7 +308,7 @@ class _LevelScreenState extends State<LevelScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Лічильник кроків: ● ● ● ○ ○ ○ ○
+          // Лічильник кроків
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(total, (i) => Padding(
@@ -316,7 +329,35 @@ class _LevelScreenState extends State<LevelScreen>
             style: AppTheme.labelStyle.copyWith(fontSize: 10, color: tSec),
           ),
           const SizedBox(height: 10),
-          // Легенда спектрів
+          // Кнопки нижнього рядка: ← назад (при помилці спектру) і skip
+          Row(
+            children: [
+              if (_gameState.state == LevelState.spectrumError)
+                GestureDetector(
+                  onTap: _gameState.removeLastStep,
+                  child: Text(
+                    '← назад',
+                    style: AppTheme.labelStyle.copyWith(
+                      fontSize: 9,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(true),
+                child: Text(
+                  'skip',
+                  style: AppTheme.labelStyle.copyWith(
+                    fontSize: 9,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          /* Легенда спектрів — закоментована, буде використана пізніше
+          const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: StarSpectrum.values.map((s) => Padding(
@@ -333,13 +374,13 @@ class _LevelScreenState extends State<LevelScreen>
                   const SizedBox(width: 4),
                   Text(
                     '${s.index + 1}m',
-                    style: AppTheme.labelStyle
-                        .copyWith(fontSize: 10, color: tSec),
+                    style: AppTheme.labelStyle.copyWith(fontSize: 10, color: tSec),
                   ),
                 ],
               ),
             )).toList(),
           ),
+          */
         ],
       ),
     );
@@ -356,14 +397,11 @@ class _LevelScreenState extends State<LevelScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Назва зірки
           Text(
             '${lvl.greekLetter} ${lvl.starNameLatin.toUpperCase()} · ПРОЙДЕНО',
             style: AppTheme.labelStyle.copyWith(fontSize: 10, color: tSec),
           ),
           const SizedBox(height: 14),
-
-          // Кнопка "Наступний рівень" або "Розділ пройдено"
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
@@ -381,10 +419,7 @@ class _LevelScreenState extends State<LevelScreen>
               ),
             ),
           ),
-
           const SizedBox(height: 10),
-
-          // Кнопка "Сузір'я" (назад)
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(
@@ -396,15 +431,5 @@ class _LevelScreenState extends State<LevelScreen>
         ],
       ),
     );
-  }
-
-  // ── Helpers ──────────────────────────────────────────────────────────────
-
-  Color _difficultyColor(String difficulty) {
-    return switch (difficulty) {
-      'СКЛАДНО' => const Color(0xFFCC5555),
-      'СЕРЕДНЬО+' || 'СЕРЕДНЬО' => AppTheme.accent,
-      _ => AppTheme.textSecondary,
-    };
   }
 }

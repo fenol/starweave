@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data/tutorial_spectrum_data.dart';
 import '../game/game_state.dart';
+import '../models/level_model.dart';
 import '../models/star_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/star_grid_widget.dart';
-import 'tutorial_jump_screen.dart';
+import 'level_screen.dart';
+
+// Результат туторіалу — використовується для навігації після завершення
+enum TutorialResult { menu, goToLevel }
 
 class TutorialScreen extends StatefulWidget {
-  const TutorialScreen({super.key});
+  /// Якщо передано — показуємо кнопку «Перейти на рівень» після успіху
+  final LevelData? firstLevel;
+
+  const TutorialScreen({super.key, this.firstLevel});
 
   @override
   State<TutorialScreen> createState() => _TutorialScreenState();
@@ -51,7 +58,6 @@ class _TutorialScreenState extends State<TutorialScreen>
   void _onGameStateChanged() {
     final newState    = _gameState.state;
     final newHintStep = _currentHint.afterStep;
-    // Анімуємо лише коли змінився стан або з'явилась нова підказка
     if (newState != _prevState || newHintStep != _prevHintStep) {
       _bannerController
         ..reset()
@@ -62,10 +68,8 @@ class _TutorialScreenState extends State<TutorialScreen>
     setState(() {});
   }
 
-  // Поточна підказка туторіалу
   TutorialHint get _currentHint {
     final step = _gameState.stepCount;
-    // Знаходимо останню підказку що підходить до поточного кроку
     return TutorialSpectrumData.hints.lastWhere(
       (h) => h.afterStep <= step,
       orElse: () => TutorialSpectrumData.hints.first,
@@ -93,14 +97,13 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  // Шапка
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => Navigator.of(context).pop(TutorialResult.menu),
             child: const Icon(Icons.chevron_left,
               color: AppTheme.textSecondary, size: 24),
           ),
@@ -114,7 +117,6 @@ class _TutorialScreenState extends State<TutorialScreen>
             ],
           ),
           const Spacer(),
-          // Кнопка скидання
           GestureDetector(
             onTap: _gameState.resetPath,
             child: const Icon(Icons.refresh,
@@ -125,9 +127,7 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  // Банер з підказкою або статусом
   Widget _buildBanner() {
-
     final (borderColor, labelColor, labelText, bodyText) = switch (_gameState.state) {
       LevelState.success => (
         AppTheme.accent,
@@ -198,7 +198,6 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  // Сітка
   Widget _buildGrid() {
     final highlight = _gameState.state == LevelState.playing
         ? _currentHint.highlightCells
@@ -220,18 +219,17 @@ class _TutorialScreenState extends State<TutorialScreen>
     );
   }
 
-  // Нижня панель
   Widget _buildBottom() {
     if (_gameState.state == LevelState.success) {
       return _buildSuccessButtons();
     }
 
+    /* Легенда яскравості зірок — закоментована, буде використана пізніше
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Легенда спектрів
           ...StarSpectrum.values.map((s) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Row(
@@ -255,46 +253,90 @@ class _TutorialScreenState extends State<TutorialScreen>
         ],
       ),
     );
+    */
+    return const SizedBox.shrink();
   }
 
-  // Кнопки після успіху
   Widget _buildSuccessButtons() {
+    // Якщо туторіал відкрито зі сторінки сузір'я — показуємо спеціальні кнопки
+    if (widget.firstLevel != null) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'ТУТОРІАЛ ПРОЙДЕНО · СПЕКТРАЛЬНИЙ РЯД',
+              style: AppTheme.labelStyle.copyWith(
+                fontSize: 10, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  // Переходимо на рівень і повертаємо результат
+                  final completed = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => LevelScreen(level: widget.firstLevel!),
+                    ),
+                  );
+                  if (!mounted) return;
+                  // Після рівня повертаємось до меню сузір'я
+                  Navigator.of(context).pop(
+                    completed == true ? TutorialResult.goToLevel : TutorialResult.menu,
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.accent),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
+                ),
+                child: Text('ПЕРЕЙТИ НА РІВЕНЬ →',
+                  style: AppTheme.buttonStyle.copyWith(
+                    color: AppTheme.accent, letterSpacing: 2)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(TutorialResult.menu),
+              child: Text('МЕНЮ СУЗіР\'Я',
+                style: AppTheme.buttonStyle.copyWith(
+                  color: AppTheme.textSecondary, letterSpacing: 2)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Стандартний варіант (з Механік) — без переходу на стрибки
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Прогрес туторіалу
           Text(
             'ТУТОРІАЛ ПРОЙДЕНО · СПЕКТРАЛЬНИЙ РЯД',
             style: AppTheme.labelStyle.copyWith(
               fontSize: 10, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 16),
-          // Кнопка — Далі: стрибки
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const TutorialJumpScreen()),
-              ),
+              onPressed: () => Navigator.of(context).pop(TutorialResult.menu),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppTheme.accent),
                 padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4)),
               ),
-              child: Text('ДАЛІ: СТРИБКИ →',
+              child: Text('ПОВЕРНУТИСЬ →',
                 style: AppTheme.buttonStyle.copyWith(
                   color: AppTheme.accent, letterSpacing: 2)),
             ),
-          ),
-          const SizedBox(height: 10),
-          // Кнопка — Меню
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('МЕНЮ',
-              style: AppTheme.buttonStyle.copyWith(
-                color: AppTheme.textSecondary, letterSpacing: 2)),
           ),
         ],
       ),
