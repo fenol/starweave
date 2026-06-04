@@ -156,6 +156,27 @@ class _ConstellationScreenState extends State<ConstellationScreen>
 
   // ── Механіка-попап ───────────────────────────────────────────────────────
 
+  // Викликається після будь-якого успішного проходження рівня levelIndex
+  void _onLevelCompleted(int levelIndex) {
+    widget.chapter.unlockNext(levelIndex);
+
+    if (levelIndex == 0 && widget.chapter.firstLevelMechanic != null) {
+      MechanicsState.unlock(widget.chapter.firstLevelMechanic!);
+    }
+
+    final doneKey = '${widget.chapter.nameLatin}_done';
+    if (widget.chapter.story != null &&
+        widget.chapter.storyOnCompletion &&
+        widget.chapter.isFullyCompleted &&
+        !_shownStories.contains(doneKey)) {
+      _shownStories.add(doneKey);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        StoryPopup.show(context, widget.chapter);
+      });
+    }
+  }
+
   Future<void> _showMechanicPopup(ConstellationStar star) async {
     final mechanic = widget.chapter.firstLevelMechanic!;
 
@@ -187,13 +208,15 @@ class _ConstellationScreenState extends State<ConstellationScreen>
         }),
       );
       if (!mounted) return;
+      // Туторіал вже зіграв перший рівень всередині себе —
+      // просто фіксуємо проходження, не відкриваємо рівень знову.
       if (result == TutorialResult.goToLevel) {
-        _openLevel(star);
-        return;
+        _onLevelCompleted(0);
       }
     } else {
-      // Закрили попап — відкриваємо рівень напряму
+      // Скіп туторіалу — відкриваємо рівень напряму
       _openLevel(star);
+      return;
     }
 
     setState(() => _tappedIndex = null);
@@ -223,25 +246,7 @@ class _ConstellationScreenState extends State<ConstellationScreen>
 
     if (!mounted) return;
     if (completed == true) {
-      widget.chapter.unlockNext(star.levelIndex);
-
-      // Розблоковуємо механіку при проходженні першого рівня розділу
-      if (star.levelIndex == 0 &&
-          widget.chapter.firstLevelMechanic != null) {
-        MechanicsState.unlock(widget.chapter.firstLevelMechanic!);
-      }
-
-      final doneKey = '${widget.chapter.nameLatin}_done';
-      if (widget.chapter.story != null &&
-          widget.chapter.storyOnCompletion &&
-          widget.chapter.isFullyCompleted &&
-          !_shownStories.contains(doneKey)) {
-        _shownStories.add(doneKey);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          StoryPopup.show(context, widget.chapter);
-        });
-      }
+      _onLevelCompleted(star.levelIndex);
     }
     setState(() => _tappedIndex = null);
   }

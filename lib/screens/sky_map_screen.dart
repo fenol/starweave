@@ -9,6 +9,14 @@ import '../data/cassiopeia_data.dart';
 import '../data/cassiopeia_levels.dart';
 import '../data/gemini_data.dart';
 import '../data/gemini_levels.dart';
+import '../data/auriga_data.dart';
+import '../data/auriga_levels.dart';
+import '../data/taurus_data.dart';
+import '../data/taurus_levels.dart';
+import '../data/canis_major_data.dart';
+import '../data/canis_major_levels.dart';
+import '../data/monoceros_data.dart';
+import '../data/monoceros_levels.dart';
 import '../models/level_model.dart';
 import '../models/constellation_model.dart';
 import 'constellation_screen.dart';
@@ -72,9 +80,26 @@ class _SkyMapScreenState extends State<SkyMapScreen> {
         section: 'РОЗДІЛ 4', hasContent: true,
         chapter: GeminiData.chapter, levelLoader: GeminiLevels.getByIndex,
       ),
-      const _ConEntry(nameUk: 'ВІЗНИК',          nameLatin: 'Auriga',     section: 'РОЗДІЛ 5', hasContent: false),
-      const _ConEntry(nameUk: 'ТЕЛЕЦЬ',          nameLatin: 'Taurus',     section: 'РОЗДІЛ 6', hasContent: false),
-      const _ConEntry(nameUk: 'МАЛА ВЕДМЕДИЦЯ', nameLatin: 'Ursa Minor', section: 'РОЗДІЛ 7', hasContent: false),
+      _ConEntry(
+        nameUk: 'ВІЗНИЧИЙ', nameLatin: 'Auriga',
+        section: 'РОЗДІЛ 5', hasContent: true,
+        chapter: AurigaData.chapter, levelLoader: AurigaLevels.getByIndex,
+      ),
+      _ConEntry(
+        nameUk: 'ТЕЛЕЦЬ', nameLatin: 'Taurus',
+        section: 'РОЗДІЛ 6', hasContent: true,
+        chapter: TaurusData.chapter, levelLoader: TaurusLevels.getByIndex,
+      ),
+      _ConEntry(
+        nameUk: 'ВЕЛИКИЙ ПЕС', nameLatin: 'Canis Major',
+        section: 'РОЗДІЛ 7', hasContent: true,
+        chapter: CanisMajorData.chapter, levelLoader: CanisMajorLevels.getByIndex,
+      ),
+      _ConEntry(
+        nameUk: 'ЄДИНОРІГ', nameLatin: 'Monoceros',
+        section: 'РОЗДІЛ 8', hasContent: true,
+        chapter: MonocerosData.chapter, levelLoader: MonocerosLevels.getByIndex,
+      ),
     ];
   }
 

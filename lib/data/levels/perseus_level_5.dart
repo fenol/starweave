@@ -1,7 +1,7 @@
 import '../../models/star_model.dart';
 import '../../models/level_model.dart';
 
-/// Рівень 5 · δ Delta Per · 9×11 · pathLength=20 · ~70% заповнення
+/// Рівень 5 · ε Eps Per · 9×11 · pathLength=20 · ~70% заповнення
 /// 7 стрибків через null:
 ///   (1,6)→(3,4)   діаг через (2,5)
 ///   (3,5)→(1,7)   діаг через (2,6)

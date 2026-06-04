@@ -1,7 +1,7 @@
 import '../../models/star_model.dart';
 import '../../models/level_model.dart';
 
-/// Рівень 4 · η Eta Per · 9×11 · pathLength=19 · ~70% заповнення
+/// Рівень 4 · δ Delta Per · 9×11 · pathLength=19 · ~70% заповнення
 /// 8 стрибків через null:
 ///   (4,9)→(6,11)  діаг через (5,10)
 ///   (6,11)→(6,9)  верт через (6,10)

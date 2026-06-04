@@ -11,12 +11,12 @@ import 'levels/perseus_level_7.dart';
 class PerseusLevels {
   static final List<LevelData?> _all = [
     PerseusLevel1.level, // 0 · α Mirfak   · 9×11 · path=16 · СКЛАДНО
-    PerseusLevel2.level, // 1 · γ Gamma Per · 9×11 · path=17 · СКЛАДНО
-    PerseusLevel3.level, // 2 · β Algol     · 9×11 · path=18 · СКЛАДНО
-    PerseusLevel4.level, // 3 · η Eta Per   · 9×11 · path=19 · СКЛАДНО
-    PerseusLevel5.level, // 4 · δ Delta Per · 9×11 · path=20 · СКЛАДНО
-    PerseusLevel6.level, // 5 · ε Eps Per   · 9×11 · path=21 · СКЛАДНО
-    PerseusLevel7.level, // 6 · ζ Zeta Per  · 9×11 · path=22 · СКЛАДНО
+    PerseusLevel2.level, // 1 · β Algol     · 9×11 · path=17 · СКЛАДНО
+    PerseusLevel3.level, // 2 · γ Gamma Per · 9×11 · path=18 · СКЛАДНО
+    PerseusLevel4.level, // 3 · δ Delta Per · 9×11 · path=19 · СКЛАДНО
+    PerseusLevel5.level, // 4 · ε Eps Per   · 9×11 · path=20 · СКЛАДНО
+    PerseusLevel6.level, // 5 · ζ Zeta Per  · 9×11 · path=21 · СКЛАДНО
+    PerseusLevel7.level, // 6 · η Eta Per   · 9×11 · path=22 · СКЛАДНО
   ];
 
   static LevelData? getByIndex(int levelIndex) {

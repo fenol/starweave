@@ -1,7 +1,7 @@
 import '../../models/star_model.dart';
 import '../../models/level_model.dart';
 
-/// Рівень 6 · ε Eps Per · 9×11 · pathLength=21 · ~69% заповнення
+/// Рівень 6 · ζ Zeta Per · 9×11 · pathLength=21 · ~69% заповнення
 /// 6 стрибків через null:
 ///   (5,2)→(7,2)   гориз через (6,2)
 ///   (7,2)→(7,4)   верт через (7,3)

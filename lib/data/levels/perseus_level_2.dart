@@ -1,7 +1,7 @@
 import '../../models/star_model.dart';
 import '../../models/level_model.dart';
 
-/// Рівень 2 · γ Gamma Per · 9×11 · pathLength=17 · ~67% заповнення
+/// Рівень 2 · β Algol · 9×11 · pathLength=17 · ~67% заповнення
 /// Механіка: 8 напрямків + стрибки на 2 через null; спектр ±1
 /// Шлях A(col9,row9)→B(col1,row6):
 ///   b w g w g w b w · g r · g w · g r g r g

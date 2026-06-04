@@ -3,8 +3,8 @@ import '../models/constellation_model.dart';
 /// Дані четвертого розділу — Кассіопея
 ///
 /// 5 яскравих зірок формують характерну фігуру «W» (або «M»):
-///   β Caph → α Schedar → γ Navi → δ Ruchbah → ε Segin
-/// Порядок рівнів: β(0) → α(1) → γ(2) → δ(3) → ε(4)
+///   α Schedar → β Caph → γ Navi → δ Ruchbah → ε Segin
+/// Порядок рівнів: α(0) → β(1) → γ(2) → δ(3) → ε(4)
 ///
 /// Координати x/y нормалізовані з реального неба (J2000):
 ///   RA  діапазон: 0h09m–1h54m → x збільшується вліво (схід)
@@ -43,24 +43,24 @@ class CassiopeiaData {
         'Сузір\'я видно з будь-якого куточка Північної півкулі цілий рік, '
         'адже воно ніколи не заходить за горизонт.',
     stars: [
-      // ─── Рівень 1 · β Caph · права верхня вершина W ─────────────────────
-      ConstellationStar(
-        name: 'Каф',
-        nameLatin: 'Caph',
-        greekLetter: 'β',
-        x: 0.90,
-        y: 0.28,
-        levelIndex: 0,
-        isUnlocked: true,
-      ),
-
-      // ─── Рівень 2 · α Schedar · права нижня ──────────────────────────────
+      // ─── Рівень 1 · α Schedar · права нижня ─────────────────────────────
       ConstellationStar(
         name: 'Шедар',
         nameLatin: 'Schedar',
         greekLetter: 'α',
         x: 0.70,
         y: 0.60,
+        levelIndex: 0,
+        isUnlocked: true,
+      ),
+
+      // ─── Рівень 2 · β Caph · права верхня вершина W ──────────────────────
+      ConstellationStar(
+        name: 'Каф',
+        nameLatin: 'Caph',
+        greekLetter: 'β',
+        x: 0.90,
+        y: 0.28,
         levelIndex: 1,
       ),
 

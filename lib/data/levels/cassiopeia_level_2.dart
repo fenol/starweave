@@ -1,7 +1,7 @@
 import '../../models/star_model.dart';
 import '../../models/level_model.dart';
 
-// Кассіопея · Рівень 2 · α Шедар · «Подвійний кут»
+// Кассіопея · Рівень 2 · β Каф · «Подвійний кут»
 // Сітка 8×10, шлях=15
 // Рішення: A(7,1)r→(7,2)g→(5,4)r→(5,6)g→(3,6)r→(2,6)g→(2,7)r→(0,5)g
 //           →(1,4)w→(0,3)BIN(b)→(1,3)w→(3,1)g→(2,1)w→(1,2)BIN(g)→(0,2)w=B
@@ -14,9 +14,9 @@ class CassiopeiaLevel2 {
   static LevelData get level => LevelData(
     levelNumber: 2,
     totalLevels: 5,
-    greekLetter: 'α',
-    starName: 'Шедар',
-    starNameLatin: 'Schedar',
+    greekLetter: 'β',
+    starName: 'Каф',
+    starNameLatin: 'Caph',
     constellation: 'Кассіопея',
     goalText: 'Знайди шлях від А до В',
     pathLength: 15,
