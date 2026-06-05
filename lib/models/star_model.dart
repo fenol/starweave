@@ -9,8 +9,9 @@ enum StarSpectrum {
 
 // Тип зірки
 enum StarType {
-  normal, // звичайна
-  binary, // бінарна — wildcard-міст між класами
+  normal,         // звичайна
+  binary,         // бінарна — ліва половина = spectrum (primary видимий)
+  binaryReversed, // обернена бінарна — права половина = secondSpectrum (primary прихований)
 }
 
 // Одна зірка на сітці
@@ -29,7 +30,8 @@ class GridStar {
     this.secondSpectrum,
   });
 
-  bool get isBinary => type == StarType.binary;
+  bool get isBinary => type == StarType.binary || type == StarType.binaryReversed;
+  bool get isBinaryReversed => type == StarType.binaryReversed;
 
   // Яскравість = числове значення спектру
   static int brightnessOf(StarSpectrum s) => s.index + 1;

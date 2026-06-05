@@ -158,6 +158,23 @@ class GameState extends ChangeNotifier {
   // Видалити останній крок (backtrack)
   void removeLastStep() {
     if (path.isEmpty) return;
+
+    // При помилці спектру від тапу (errorStar ≠ останній крок у шляху)
+    // помилкова зірка ніколи не додавалась до path — просто очищаємо помилку,
+    // щоб гравець залишився на останньому правильному кроці і міг спробувати інший.
+    // Виняток: помилка перемикання бінарної зірки — вона вже є в path як last step.
+    if (state == LevelState.spectrumError) {
+      final isBinaryToggleError = errorStar != null &&
+          errorStar!.row == path.last.star.row &&
+          errorStar!.col == path.last.star.col;
+      if (!isBinaryToggleError) {
+        state = LevelState.playing;
+        errorStar = null;
+        notifyListeners();
+        return;
+      }
+    }
+
     path.removeLast();
     state = LevelState.playing;
     errorStar = null;

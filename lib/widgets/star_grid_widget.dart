@@ -351,20 +351,34 @@ class _GridPainter extends CustomPainter {
       return;
     }
 
-    // Не в шляху: ромб наполовину зафарбований (лівий трикутник = primary)
-    // Контур усього ромба
-    _drawDiamondOutline(canvas, center, radius,
-        SpectrumColors.of(star.spectrum).withOpacity(0.35));
+    // Не в шляху: ромб наполовину зафарбований
+    if (star.isBinaryReversed) {
+      // Обернена бінарна: права половина = secondSpectrum (видима), ліва прозора
+      _drawDiamondOutline(canvas, center, radius,
+          SpectrumColors.of(star.secondSpectrum!).withOpacity(0.35));
 
-    // Ліва половина = primary color
-    final leftHalf = Path()
-      ..moveTo(center.dx, center.dy - radius)   // верхній кут
-      ..lineTo(center.dx - radius, center.dy)    // лівий кут
-      ..lineTo(center.dx, center.dy + radius)    // нижній кут
-      ..close();
-    canvas.drawPath(leftHalf, Paint()
-      ..color = SpectrumColors.of(star.spectrum).withOpacity(0.72)
-      ..style = PaintingStyle.fill);
+      final rightHalf = Path()
+        ..moveTo(center.dx, center.dy - radius)   // верхній кут
+        ..lineTo(center.dx + radius, center.dy)    // правий кут
+        ..lineTo(center.dx, center.dy + radius)    // нижній кут
+        ..close();
+      canvas.drawPath(rightHalf, Paint()
+        ..color = SpectrumColors.of(star.secondSpectrum!).withOpacity(0.72)
+        ..style = PaintingStyle.fill);
+    } else {
+      // Звичайна бінарна: ліва половина = spectrum (primary видимий)
+      _drawDiamondOutline(canvas, center, radius,
+          SpectrumColors.of(star.spectrum).withOpacity(0.35));
+
+      final leftHalf = Path()
+        ..moveTo(center.dx, center.dy - radius)   // верхній кут
+        ..lineTo(center.dx - radius, center.dy)    // лівий кут
+        ..lineTo(center.dx, center.dy + radius)    // нижній кут
+        ..close();
+      canvas.drawPath(leftHalf, Paint()
+        ..color = SpectrumColors.of(star.spectrum).withOpacity(0.72)
+        ..style = PaintingStyle.fill);
+    }
 
     // Центральна лінія-поділ
     canvas.drawLine(
